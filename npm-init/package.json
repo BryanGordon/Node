@@ -1,0 +1,17 @@
+{
+  "name": "nmp-init",
+  "version": "1.0.0",
+  "description": "testing init command",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "node"
+  ],
+  "author": "Bryan Gordon Echeverria",
+  "license": "ISC",
+  "dependencies": {
+    "picocolors": "^1.1.1"
+  }
+}
