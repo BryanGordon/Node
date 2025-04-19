@@ -5,7 +5,8 @@
   "main": "http.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev" : "nodemon http.js"
+    "dev": "nodemon routing.js",
+    "dev-ex": "node --watch express.js"
   },
   "keywords": [],
   "author": "",
@@ -16,5 +17,8 @@
   },
   "eslintConfig": {
     "extends": "standard"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
   }
 }
