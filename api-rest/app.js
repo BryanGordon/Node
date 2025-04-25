@@ -3,6 +3,7 @@ const crypto =  require('node:crypto')
 const z = require('zod')
 
 const movies = require('./movies.json')
+const { validateMovie, validatePartialMovie } = require('./schemas/movies')
 
 const app = express()
 app.disable('x-power-by')
@@ -13,6 +14,17 @@ app.get('/', (req, res) => {
 })
 
 app.get('/movies', (req, res) => {
+  // Forma de solucionar el problema de cors
+  // hay mejores formas de solucionarlo,
+  // creando una lista con los origenes que
+  // tienen acceso o instalando una dependencia (middleware)
+  // llamada cors.
+  res.header('Access-Control-Allow-Origin', '*') 
+  // Cabecera para resolver problemas de cors cuando existe
+  // una peticion fuera del endpoint principal o cuando
+  // se requiera utilizar un metodo diferente al GET.
+  // res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE  ')
+
   const { genre } = req.query
   if (genre) {
     const filteredMovies = movies.filter(
@@ -30,57 +42,54 @@ app.get('/movies/:id', (req, res) => {
   res.status(404).json({ message: 'Movie not found'})
 })
 
-const PORT = process.env.PORT ?? 3000
-
-app.listen(PORT, () => {
-  console.log(`Server listening on port: http://localhost:${PORT}`)
-})
-
 // Metodos post
 
 app.post('/movies', (req, res) => {
   // Hacer un schema para validar la peticion
-  const movieSchema = z.object({
-    title: z.string({
-      invalid_type_error: 'Movie title must be a string',
-      required_error: 'Movie is required'
-    }),
-    genre: z.array(z.enum(
-      ['Action', 'Adventure', 'Comedy', 'Crime', 'Drama', 'Fantasy', 'Horror', 'Thiller', 'Sci-Fi']
-    ), {
-      invalid_type_error: 'Genre must be a correct genre',
-      required_error: 'Genre is required'
-    }),
-    year: z.number().int().min(1900).max(2027),
-    director: z.string({
-      invalid_type_error: 'Director must be a string'
-    }),
-    duration: z.number().int().positive(),
-    rate: z.number().min(0).max(10),
-    poster: z.string()
-  })
-  const {
-    title,
-     genre,
-     year,
-     director,
-     duration,
-     rate,
-     poster
-  } = req.body
+  const result = validateMovie(req.body)
+
+  if (result.error) {
+    return res.status(400).json({ error: JSON.parse(result.error.message) })
+  }
 
   const newMovie = {
     id: crypto.randomUUID(),
-    title,
-    genre,
-    year,
-    director,
-    duration,
-    rate: rate ?? 0,
-    poster
+    ...result.data
   }
 
   movies.push(newMovie)
 
   res.status(201).json(newMovie)
+})
+
+// Metodos patch (update)
+
+app.patch('/movies/:id', (req, res) => {
+  const result = validatePartialMovie(req.body)
+  
+  if (result.error) { 
+    return res.status(400).json({ error: JSON.parse(result.error.message) })
+  }
+  
+  const { id } = req.params
+  const movieIndex = movies.findIndex(movie => movie.id === id)
+
+  if (movieIndex === -1) {
+    return res.status(404).json({ message: 'Movie not found'})
+  }
+
+  const updateMovie = {
+    ...movies[movieIndex],
+    ...result.data
+  }
+
+  movies[movieIndex] = updateMovie
+
+  res.json(updateMovie)
+})
+
+const PORT = process.env.PORT ?? 3000
+
+app.listen(PORT, () => {
+  console.log(`Server listening on port: http://localhost:${PORT}`)
 })
