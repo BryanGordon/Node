@@ -10,8 +10,17 @@ app.use(logger('dev'))
 
 const server = createServer(app)
 const io = new Server(server)
-io.on('connection', () => {
+
+io.on('connection', (socket) => {
   console.log('A user has connected!')
+
+  socket.on('disconnect', () => {
+    console.log('An user has disconnected.')
+  })
+
+  socket.on('chat message', (msg) => {
+    io.emit('chat message', msg)
+  })
 })
 
 
