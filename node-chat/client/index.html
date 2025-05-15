@@ -21,6 +21,8 @@
       const item = `<li>${msg}</li>`
       messages.insertAdjacentHTML('beforeend', item)
       socket.auth.serverOffset = serverOffset
+      // Scroll to last message
+      messages.scrollTop = messages.scrollHeight
     })
 
     form.addEventListener('submit', (e) => {
