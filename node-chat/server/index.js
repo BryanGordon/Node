@@ -29,8 +29,7 @@ const io = new Server(server, {
   connectionStateRecovery: { }
 })
 
-io.on('connection', (socket) => {
-  console.log('A user has connected!')
+io.on('connection', async (socket) => {
   console.log('An user has connected!')
 
   socket.on('disconnect', () => {
@@ -51,8 +50,22 @@ io.on('connection', (socket) => {
 
     io.emit('chat message', msg, results.lastInsertRowid.toString())
   })
-})
 
+  if (!socket.recovered) {
+    try {
+      const results = await db.execute({
+        sql: 'SELECT * FROM messages WHERE id > ?',
+        args: [socket.handshake.auth.serverOffset] ?? 0
+      })
+
+      results.rows.forEach(row => {
+        socket.emit('chat message', row.content, row.id.toString())
+      })
+    } catch (e) {
+      console.error(e)
+    }
+  }
+})
 
 app.get('/', (req, res) => {
   res.sendFile(process.cwd() + '/client/index.html')
