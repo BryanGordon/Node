@@ -10,7 +10,7 @@ const PORT = process.env.PORT ?? 3000
 dotenv.config()
 
 const db = createClient({
-  url: "libsql://node-chat-bryangordon.aws-us-east-1.turso.io",
+  url: process.env.DB_URL,
   authToken: process.env.DB_TOKEN
 })
 
